@@ -4,9 +4,9 @@ import { Server } from "socket.io";
 import { createServer } from "node:http";
 import cors from 'cors';
 import dotenv from 'dotenv';
-import UserRoutes from './routes/userRoutes.js';
-import PostRoutes from './routes/postRoutes.js';
-import StoryRoutes from './routes/storyRoutes.js';
+import userRoutes from './src/routes/userRoutes.js';
+import PostRoutes from '.src/routes/postRoutes.js';
+import StoryRoutes from '.src/routes/storyRoutes.js';
 
 dotenv.config();
 
@@ -26,7 +26,7 @@ app.use(cors());
 app.use(express.json({ limit: "40kb" }));
 app.use(express.urlencoded({ limit: "40kb", extended: true }));
 
-app.use('/users', UserRoutes);
+app.use('/users', userRoutes);
 app.use('/user/posts', PostRoutes);
 app.use('/user/stories', StoryRoutes);
 
