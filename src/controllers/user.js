@@ -2,13 +2,13 @@ import userModel from '../models/user.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-import Stream from "getstream";
+// import Stream from "getstream";
 
-const client = Stream.connect(
-  process.env.STREAM_API_KEY,
-  process.env.STREAM_API_SECRET,
-  process.env.STREAM_APP_ID
-);
+// const client = Stream.connect(
+//   process.env.STREAM_API_KEY,
+//   process.env.STREAM_API_SECRET,
+//   process.env.STREAM_APP_ID
+// );
 
 
 // Register User
@@ -43,10 +43,10 @@ export const registerUser = async (req, res) => {
     });
     await newUser.save();
 
-    const userFeed = client.createUserToken(newUser._id);
+    // const userFeed = client.createUserToken(newUser._id);
     const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, { expiresIn: "30d" });
-    await client.user(newUser._id).getOrCreate({ name: newUser.username });
-    res.status(201).json({ message: "User registered successfully", token, userFeed });
+    // await client.user(newUser._id).getOrCreate({ name: newUser.username });
+    res.status(201).json({ message: "User registered successfully", token });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }  
@@ -67,10 +67,10 @@ export const loginUser = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
     
-    const userFeed = client.createUserToken(user._id);
+    // const userFeed = client.createUserToken(user._id);
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "30d" });
-    await client.user(user._id).getOrCreate({ name: user.username });
-    res.status(200).json({ message: "Login successful", token, userFeed });
+    // await client.user(user._id).getOrCreate({ name: user.username });
+    res.status(200).json({ message: "Login successful", token });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }

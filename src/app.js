@@ -4,9 +4,12 @@ import { Server } from "socket.io";
 import { createServer } from "node:http";
 import cors from 'cors';
 import dotenv from 'dotenv';
-import userRoutes from './src/routes/userRoutes.js';
-import PostRoutes from '.src/routes/postRoutes.js';
-import StoryRoutes from '.src/routes/storyRoutes.js';
+import userRoutes from './routes/user.js';
+import PostRoutes from './routes/post.js';
+import StoryRoutes from './routes/story.js';
+import RequestRoutes from './routes/friendRequest.js';
+import methodOverride from 'method-override';
+
 
 dotenv.config();
 
@@ -25,13 +28,13 @@ app.set("port", (process.env.PORT || 8000))
 app.use(cors());
 app.use(express.json({ limit: "40kb" }));
 app.use(express.urlencoded({ limit: "40kb", extended: true }));
-
-app.use('/users', userRoutes);
-app.use('/user/posts', PostRoutes);
-app.use('/user/stories', StoryRoutes);
+app.use(methodOverride('_method'));
 
 
-
+app.use('/', userRoutes);
+app.use('/posts', PostRoutes);
+app.use('/stories', StoryRoutes);
+app.use('/friend-requests', RequestRoutes);
 
 app.get('/', (req, res) => {
   res.send('Hello World!');

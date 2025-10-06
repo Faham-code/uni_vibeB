@@ -37,3 +37,17 @@ export const getStories = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+//get delete story by id
+export const deleteStory = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const story = await Story.findByIdAndDelete(id);
+    if (!story) {
+      return res.status(404).json({ error: "Story not found" });
+    } 
+    res.status(200).json({ message: "Story deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
