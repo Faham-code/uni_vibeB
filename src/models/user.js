@@ -13,7 +13,6 @@ const userSchema = new mongoose.Schema({
   },
   student_type: {
     type: String,
-    enum: ['student','alumni'],
     required: true,
   },
   course: {

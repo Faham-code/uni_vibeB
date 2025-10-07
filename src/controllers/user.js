@@ -14,42 +14,55 @@ import jwt from 'jsonwebtoken';
 // Register User
 export const registerUser = async (req, res) => {
   try {
-    const { email, password, student_type, course, year, username } = req.body; 
-    if (!email || !password || !student_type || !course || !year) {
+    let { email, password, student_type, course, year, username } = req.body;
+    if (!email || !password || !student_type || !course || !year)
       return res.status(400).json({ message: "All required fields must be filled" });
-    } 
+
+    email = email.trim().toLowerCase();
+    username = username?.trim();
+
     const existingUser = await userModel.findOne({ email });
-    if (existingUser) {
+    if (existingUser)
       return res.status(400).json({ message: "User already exists" });
-    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Generate username if not provided, and add 'alummni' if student_type is 'alummni'
-    let finalUsername = username;
-    if (!finalUsername) {
-      finalUsername = email.split("@")[0] + "_" + student_type + "_" + year;
-    }
-    if (student_type.toLowerCase() === "alummni" && !finalUsername.toLowerCase().includes("alummni")) {
-      finalUsername += "_alummni";
-    }
+    let finalUsername = username || `${email.split("@")[0]}_${student_type}_${year}`;
+    if (student_type.toLowerCase() === "alumni" && !finalUsername.toLowerCase().includes("alumni"))
+      finalUsername += "_alumni";
+
+    // Ensure username is unique
+    const existingUsername = await userModel.findOne({ username: finalUsername });
+    if (existingUsername)
+      finalUsername += "_" + Math.floor(Math.random() * 1000);
 
     const newUser = new userModel({
       email,
       password: hashedPassword,
       student_type,
-      course,  
+      course,
       year,
       username: finalUsername
     });
     await newUser.save();
 
-    // const userFeed = client.createUserToken(newUser._id);
     const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, { expiresIn: "30d" });
-    // await client.user(newUser._id).getOrCreate({ name: newUser.username });
-    res.status(201).json({ message: "User registered successfully", token });
+
+    res.status(201).json({
+      message: "User registered successfully",
+      token,
+      user: {
+        id: newUser._id,
+        email: newUser.email,
+        username: newUser.username,
+        student_type: newUser.student_type,
+        course: newUser.course,
+        year: newUser.year
+      }
+    });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
-  }  
+  }
 };
 // Login User
 export const loginUser = async (req, res) => {
