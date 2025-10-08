@@ -14,8 +14,8 @@ import jwt from 'jsonwebtoken';
 // Register User
 export const registerUser = async (req, res) => {
   try {
-    let { email, password, student_type, course, year, username } = req.body;
-    if (!email || !password || !student_type || !course || !year)
+    let { email, password, student_type, course, year, username, full_name } = req.body;
+    if (!email || !password || !student_type || !course || !year || !full_name)
       return res.status(400).json({ message: "All required fields must be filled" });
 
     email = email.trim().toLowerCase();
@@ -42,7 +42,8 @@ export const registerUser = async (req, res) => {
       student_type,
       course,
       year,
-      username: finalUsername
+      username: finalUsername,
+      full_name
     });
     await newUser.save();
 
@@ -57,7 +58,8 @@ export const registerUser = async (req, res) => {
         username: newUser.username,
         student_type: newUser.student_type,
         course: newUser.course,
-        year: newUser.year
+        year: newUser.year,
+        full_name: newUser.full_name
       }
     });
   } catch (error) {
