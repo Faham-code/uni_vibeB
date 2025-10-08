@@ -136,3 +136,39 @@ export const deleteUser = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };  
+
+export const searchUsers = async (req, res) => {
+  try {
+    const { query } = req.query;  
+
+    if (!query || query.trim() === "") {
+      return res.status(400).json({ message: "Query parameter is required" });
+    } 
+
+    const users = await userModel
+      .find({
+        $or: [
+          { username: { $regex: query, $options: "i" } }, // search by username
+          { fullName: { $regex: query, $options: "i" } }, // search by full name
+        ],
+      })
+      .select("username fullName student_type course year");
+
+    if (users.length === 0) {
+      return res.status(404).json({ message: "No users found matching your search" });
+    }
+
+    res.status(200).json({
+      message: "Users fetched successfully",
+      count: users.length,
+      users,
+    });
+
+  } catch (error) {
+    // 7️⃣ Handle any unexpected errors
+    res.status(500).json({
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
