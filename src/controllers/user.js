@@ -137,6 +137,7 @@ export const deleteUser = async (req, res) => {
   }
 };  
 
+// Search Users
 export const searchUsers = async (req, res) => {
   try {
     const { query } = req.query;  
@@ -171,4 +172,58 @@ export const searchUsers = async (req, res) => {
       error: error.message,
     });
   }
+};
+
+
+export const getCurrentUser = async (req, res) => {
+  try {
+    const userId = req.user.id; // Assuming req.user is set by authentication middleware
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json({ user });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+export const uploadProfilePicture = async (req, res) => {
+  try {
+    const userId = req.user.id; // Assuming req.user is set by authentication middleware
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+    const profilePictureUrl = req.file.path; // Assuming file upload middleware sets the file path
+
+    const user = await userModel.findByIdAndUpdate(
+      userId,
+      { profilePicture: profilePictureUrl },
+      { new: true }
+    );
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json({ message: "Profile picture updated", user });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+
+export const deleteProfilePicture = async (req, res) => {
+  try {
+    const userId = req.user.id; // Assuming req.user is set by authentication middleware
+    const user = await userModel.findByIdAndUpdate(
+      userId,
+      { $unset: { profilePicture: "" } },
+      { new: true }
+    ); 
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json({ message: "Profile picture deleted", user });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  } 
 };
