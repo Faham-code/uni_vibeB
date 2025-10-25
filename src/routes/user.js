@@ -1,5 +1,5 @@
 import express from 'express';
-import protect from "../middelware.js"
+import authMiddleware from "../middelware.js"
 import {
   registerUser,
   loginUser,
@@ -18,7 +18,7 @@ const router = express.Router();
 router.post("/register", registerUser);
 router.post("/login", loginUser);
 
-router.get("/me",protect, getCurrentUser);
+router.get("/me",authMiddleware, getCurrentUser);
 router.post("/me/profile-picture", uploadProfilePicture);
 router.delete("/me/profile-picture", deleteProfilePicture);
 

@@ -1,39 +1,14 @@
-import jwt from'jsonwebtoken';
-import userModel from'./models/userModel'; 
-
-const jwtSecret = process.env.JWT_SECRET || 'your_fallback_secret_key';
-
-const protect = async (req, res, next) => {
-    let token;
-
-    if (
-        req.headers.authorization &&
-        req.headers.authorization.startsWith('Bearer')
-    ) {
-        try {
-            token = req.headers.authorization.split(' ')[1];
-
-            const decoded = jwt.verify(token, jwtSecret);
-
-            const user = await userModel.findById(decoded.id).select('-password');
-            
-            if (!user) {
-                return res.status(401).json({ message: 'Not authorized, user not found' });
-            }
-
-            req.user = user; 
-
-            next();
-
-        } catch (error) {
-            console.error(error);
-            return res.status(401).json({ message: 'Not authorized, token failed' });
-        }
-    }
-
-    if (!token) {
-        return res.status(401).json({ message: 'Not authorized, no token' });
+export const authMiddleware = (req, res, next) => {
+    try {
+        const token = req.header('Authorization').replace('Bearer ', '');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        
+        // 🚨 CRITICAL FIX: Ensure the payload is attached with the correct property name
+        req.user = { id: decoded.id, username: decoded.username }; // Adjust properties as needed
+        
+        next(); // Proceed to the controller
+    } catch (error) {
+        // 🚨 IMPORTANT: Send a proper 401 response instead of letting the server crash
+        return res.status(401).json({ message: "Unauthorized: Invalid or expired token." });
     }
 };
-
-module.exports = { protect };
