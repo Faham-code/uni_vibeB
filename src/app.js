@@ -31,7 +31,7 @@ app.use(express.urlencoded({ limit: "40kb", extended: true }));
 app.use(methodOverride('_method'));
 
 
-app.use('/', userRoutes);
+app.use('/users', userRoutes);
 app.use('/posts', PostRoutes);
 app.use('/stories', StoryRoutes);
 app.use('/friend-requests', RequestRoutes);
