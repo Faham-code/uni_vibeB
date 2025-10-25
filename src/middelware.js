@@ -2,26 +2,31 @@ import jwt from 'jsonwebtoken';
 // Ensure 'jwt' is imported in this file
 
 export const authMiddleware = (req, res, next) => {
-    // 1. CRITICAL FIX: Safely check for the Authorization header
+    // 1. Safely check for the Authorization header
     const authHeader = req.header('Authorization');
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        // If header is missing or improperly formatted, send 401 immediately
         return res.status(401).json({ message: "Authorization failed: Missing or invalid token format." });
     }
 
-    // Safely extract the token
     const token = authHeader.replace('Bearer ', '');
 
     try {
         // 2. Verify the token and decode the payload
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         
-        // 3. Attach the user ID and username to the request object
-        // NOTE: This ensures 'req.user.id' is available for the controller
+        // 3. CRITICAL ATTACHMENT FIX: Safely assign the user ID and data.
+        
+        if (!decoded.id) {
+             // If the token is valid but doesn't contain an 'id', something is wrong with your login token creation
+             return res.status(401).json({ message: "Invalid token payload: User ID missing." });
+        }
+        
+        // 🟢 FIX 1: Ensure ID is always a String, which Mongoose's findById can handle reliably.
+        // 🟢 FIX 2: Safely access username, using the ID as a fallback if the username field isn't in the token.
         req.user = { 
-            id: decoded.id, 
-            username: decoded.username 
+            id: String(decoded.id), 
+            username: String(decoded.username || decoded.id),
         };
         
         // 4. Continue to the next middleware or controller function
