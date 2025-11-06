@@ -121,36 +121,55 @@ export const likePost = async (req, res) => {
     if (!post) {
       return res.status(404).json({ error: "Post not found" });
     }
+
+    // Prevent duplicate likes
+    if (post.likes.includes(req.user.id)) {
+      return res.status(400).json({ error: "Post already liked" });
+    }
+
+    // Add like
     post.likes.push(req.user.id);
     await post.save();
+
+    // Send notification (if not self-like)
     if (post.author.toString() !== req.user.id) {
-     await Notification.create({
-    user: post.author,
-    type: "like",
-    fromUser: req.user.id,
-    post: post._id,
-    message: "Your post was liked!"
-  });
-}
-    res.status(200).json(post);
+      await Notification.create({
+        user: post.author,
+        type: "like",
+        fromUser: req.user.id,
+        post: post._id,
+        message: "Your post was liked!",
+      });
+    }
+
+    res.status(200).json({
+      post,
+      likesCount: post.likes.length, // Dynamic like count
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-//unlike a post
+// Unlike a post
 export const unlikePost = async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
     if (!post) {
       return res.status(404).json({ error: "Post not found" });
     }
-    post.likes = post.likes.filter(like => like.toString() !== req.user.id);
+
+    // Remove user from likes
+    post.likes = post.likes.filter((like) => like.toString() !== req.user.id);
     await post.save();
-    res.status(200).json(post);
+
+    res.status(200).json({
+      post,
+      likesCount: post.likes.length, //  Dynamic like count
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
-  } 
+  }
 };
 
 
